@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EA Summit Helsinki - Invite Leaderboard 🏆</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .submission-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .leaderboard {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        .leaderboard-title {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .leaderboard-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .leaderboard-item.rank-1 {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .leaderboard-item.rank-2 {
+            background: linear-gradient(135deg, #e0e0e0 0%, #c9d6df 100%);
+            font-weight: 600;
+        }
+
+        .leaderboard-item.rank-3 {
+            background: linear-gradient(135deg, #f4a582 0%, #e8b59a 100%);
+            font-weight: 600;
+        }
+
+        .rank {
+            font-size: 1.5em;
+            font-weight: bold;
+            min-width: 60px;
+            display: flex;
+            align-items: center;
+        }
+
+        .medal {
+            font-size: 1.8em;
+            margin-right: 10px;
+        }
+
+        .player-info {
+            flex: 1;
+            padding: 0 20px;
+        }
+
+        .player-name {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .invite-count {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .invite-count .label {
+            font-size: 0.7em;
+            color: #666;
+            font-weight: normal;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 1.2em;
+        }
+
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: slideDown 0.3s ease-out;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 10px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .leaderboard-item {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .player-info {
+                padding: 10px 0;
+            }
+
+            .invite-count {
+                text-align: center;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎉 EA Summit Helsinki 🎉</h1>
+            <p class="subtitle">Invite Leaderboard Challenge</p>
+        </header>
+
+        <div class="submission-form">
+            <div id="successMessage" class="success-message"></div>
+            <h2 style="margin-bottom: 20px; color: #667eea;">Submit Your Invites</h2>
+            <form id="inviteForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="invites">Number of Invites</label>
+                    <input type="number" id="invites" name="invites" min="0" required placeholder="How many people did you invite?">
+                </div>
+                <button type="submit">🚀 Submit to Leaderboard</button>
+            </form>
+            <p style="margin-top: 15px; color: #666; font-size: 0.9em; text-align: center;">
+                💡 Tip: Re-submit with the same name to update your invite count!
+            </p>
+        </div>
+
+        <div class="leaderboard">
+            <h2 class="leaderboard-title">🏆 Leaderboard 🏆</h2>
+            <ul id="leaderboardList" class="leaderboard-list">
+                <li class="empty-state">No entries yet. Be the first to submit!</li>
+            </ul>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="totalParticipants">0</div>
+                    <div class="stat-label">Participants</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="totalInvites">0</div>
+                    <div class="stat-label">Total Invites</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class InviteLeaderboard {
+            constructor() {
+                this.storageKey = 'eaSummitInvites';
+                this.form = document.getElementById('inviteForm');
+                this.leaderboardList = document.getElementById('leaderboardList');
+                this.successMessage = document.getElementById('successMessage');
+                this.init();
+            }
+
+            init() {
+                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+                this.renderLeaderboard();
+            }
+
+            getEntries() {
+                const data = localStorage.getItem(this.storageKey);
+                return data ? JSON.parse(data) : [];
+            }
+
+            saveEntries(entries) {
+                localStorage.setItem(this.storageKey, JSON.stringify(entries));
+            }
+
+            handleSubmit(e) {
+                e.preventDefault();
+                const name = document.getElementById('name').value.trim();
+                const invites = parseInt(document.getElementById('invites').value);
+
+                if (!name || invites < 0) {
+                    return;
+                }
+
+                let entries = this.getEntries();
+                const existingIndex = entries.findIndex(entry =>
+                    entry.name.toLowerCase() === name.toLowerCase()
+                );
+
+                let message = '';
+                if (existingIndex !== -1) {
+                    const oldInvites = entries[existingIndex].invites;
+                    entries[existingIndex].invites = invites;
+                    entries[existingIndex].timestamp = new Date().toISOString();
+                    message = `Updated ${name}'s invites from ${oldInvites} to ${invites}! 🎉`;
+                } else {
+                    entries.push({
+                        name: name,
+                        invites: invites,
+                        timestamp: new Date().toISOString()
+                    });
+                    message = `${name} added to the leaderboard with ${invites} invites! 🚀`;
+                }
+
+                this.saveEntries(entries);
+                this.showSuccessMessage(message);
+                this.renderLeaderboard();
+                this.form.reset();
+            }
+
+            showSuccessMessage(message) {
+                this.successMessage.textContent = message;
+                this.successMessage.classList.add('show');
+                setTimeout(() => {
+                    this.successMessage.classList.remove('show');
+                }, 3000);
+            }
+
+            renderLeaderboard() {
+                const entries = this.getEntries();
+
+                if (entries.length === 0) {
+                    this.leaderboardList.innerHTML = '<li class="empty-state">No entries yet. Be the first to submit!</li>';
+                    this.updateStats(0, 0);
+                    return;
+                }
+
+                entries.sort((a, b) => b.invites - a.invites);
+
+                const medals = ['🥇', '🥈', '🥉'];
+
+                this.leaderboardList.innerHTML = entries.map((entry, index) => {
+                    const rank = index + 1;
+                    const rankClass = rank <= 3 ? `rank-${rank}` : '';
+                    const medal = rank <= 3 ? `<span class="medal">${medals[index]}</span>` : '';
+
+                    return `
+                        <li class="leaderboard-item ${rankClass}">
+                            <div class="rank">
+                                ${medal}
+                                <span>#${rank}</span>
+                            </div>
+                            <div class="player-info">
+                                <div class="player-name">${this.escapeHtml(entry.name)}</div>
+                            </div>
+                            <div class="invite-count">
+                                ${entry.invites} <span class="label">invites</span>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+
+                const totalInvites = entries.reduce((sum, entry) => sum + entry.invites, 0);
+                this.updateStats(entries.length, totalInvites);
+            }
+
+            updateStats(participants, totalInvites) {
+                document.getElementById('totalParticipants').textContent = participants;
+                document.getElementById('totalInvites').textContent = totalInvites;
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        new InviteLeaderboard();
+    </script>
+</body>
+</html>
