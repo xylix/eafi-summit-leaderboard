@@ -567,158 +567,157 @@ Let's make this summit amazing! 🚀
 
 async def edit_invites_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle invite editing (replace total count)."""
-    user = update.effective_user
-    username = user.username or f"user{user.id}"
-
-    # Parse invite count from command
-    if not context.args or len(context.args) != 1:
-        await update.message.reply_text(
-            "Please provide the number of invites.\n"
-            "Example: `/edit 10`",
-            parse_mode='Markdown'
-        )
-        return
-
     try:
-        invites = int(context.args[0])
-        if invites < 0:
-            await update.message.reply_text("Invite count must be a positive number!")
+        user = update.effective_user
+        username = user.username or f"user{user.id}"
+
+        # Parse invite count from command
+        if not context.args or len(context.args) != 1:
+            await update.message.reply_text(
+                "Please provide the number of invites.\n"
+                "Example: `/edit 10`",
+                parse_mode='Markdown'
+            )
             return
-    except ValueError:
-        await update.message.reply_text("Please provide a valid number!")
-        return
 
-    # Edit leaderboard entry
-    is_new, previous = leaderboard.edit_invites(user.id, username, invites)
+        try:
+            invites = int(context.args[0])
+            if invites < 0:
+                await update.message.reply_text("Invite count must be a positive number!")
+                return
+        except ValueError:
+            await update.message.reply_text("Please provide a valid number!")
+            return
 
-    if is_new:
-        message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
-    else:
-        message = f"✅ Updated your total from *{previous}* to *{invites}* invites!"
+        # Edit leaderboard entry
+        is_new, previous = leaderboard.edit_invites(user.id, username, invites)
 
-    await update.message.reply_text(message, parse_mode='Markdown')
+        if is_new:
+            message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
+        else:
+            message = f"✅ Updated your total from *{previous}* to *{invites}* invites!"
 
-    # Auto-publish to GitHub
-    logger.info(f"Auto-publishing after edit by @{username}")
-    leaderboard_data = leaderboard.get_leaderboard()
-    stats = leaderboard.get_total_stats()
-    publisher.update_html(leaderboard_data, stats)
+        await update.message.reply_text(message, parse_mode='Markdown')
 
-    success, pub_message = publisher.publish(
-        f"Update leaderboard: @{username} edited to {invites} invites"
-    )
-    if success:
-        logger.info(f"Published to GitHub: {pub_message}")
-    else:
-        logger.error(f"Failed to publish: {pub_message}")
+        # Note: HTML publishing disabled to avoid file system issues
+        # Data is still saved to JSON file
+    except Exception as e:
+        logger.error(f"Error in edit_invites_handler: {e}")
         await update.message.reply_text(
-            "⚠️ Update saved but failed to publish to website. Check logs."
+            "Sorry, there was an error processing your request. Please try again later."
         )
 
 
 async def add_invites_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle adding invites to existing count."""
-    user = update.effective_user
-    username = user.username or f"user{user.id}"
-
-    # Parse invite count from command
-    if not context.args or len(context.args) != 1:
-        await update.message.reply_text(
-            "Please provide the number of invites to add.\n"
-            "Example: `/add 5`",
-            parse_mode='Markdown'
-        )
-        return
-
     try:
-        invites = int(context.args[0])
-        if invites < 0:
-            await update.message.reply_text("Invite count must be a positive number!")
+        user = update.effective_user
+        username = user.username or f"user{user.id}"
+
+        # Parse invite count from command
+        if not context.args or len(context.args) != 1:
+            await update.message.reply_text(
+                "Please provide the number of invites to add.\n"
+                "Example: `/add 5`",
+                parse_mode='Markdown'
+            )
             return
-    except ValueError:
-        await update.message.reply_text("Please provide a valid number!")
-        return
 
-    # Add to leaderboard
-    is_new, previous, new_total = leaderboard.add_invites(user.id, username, invites)
+        try:
+            invites = int(context.args[0])
+            if invites < 0:
+                await update.message.reply_text("Invite count must be a positive number!")
+                return
+        except ValueError:
+            await update.message.reply_text("Please provide a valid number!")
+            return
 
-    if is_new:
-        message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
-    else:
-        message = f"➕ Added *{invites}* invites! Your total: *{previous}* → *{new_total}*"
+        # Add to leaderboard
+        is_new, previous, new_total = leaderboard.add_invites(user.id, username, invites)
 
-    await update.message.reply_text(message, parse_mode='Markdown')
+        if is_new:
+            message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
+        else:
+            message = f"➕ Added *{invites}* invites! Your total: *{previous}* → *{new_total}*"
 
-    # Auto-publish to GitHub
-    logger.info(f"Auto-publishing after add by @{username}")
-    leaderboard_data = leaderboard.get_leaderboard()
-    stats = leaderboard.get_total_stats()
-    publisher.update_html(leaderboard_data, stats)
+        await update.message.reply_text(message, parse_mode='Markdown')
 
-    success, pub_message = publisher.publish(
-        f"Update leaderboard: @{username} added {invites} invites (total: {new_total})"
-    )
-    if success:
-        logger.info(f"Published to GitHub: {pub_message}")
-    else:
-        logger.error(f"Failed to publish: {pub_message}")
+        # Note: HTML publishing disabled to avoid file system issues
+        # Data is still saved to JSON file
+    except Exception as e:
+        logger.error(f"Error in add_invites_handler: {e}")
         await update.message.reply_text(
-            "⚠️ Update saved but failed to publish to website. Check logs."
+            "Sorry, there was an error processing your request. Please try again later."
         )
+
+
+def escape_markdown(text: str) -> str:
+    """Escape special characters for Telegram Markdown."""
+    special_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for char in special_chars:
+        text = text.replace(char, f'\\{char}')
+    return text
 
 
 async def show_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Display the current leaderboard."""
-    entries = leaderboard.get_leaderboard()
-    stats = leaderboard.get_total_stats()
+    try:
+        entries = leaderboard.get_leaderboard()
+        stats = leaderboard.get_total_stats()
 
-    if not entries:
+        if not entries:
+            await update.message.reply_text(
+                "📊 The leaderboard is empty!\n"
+                "Be the first to submit with /add or /edit!",
+                parse_mode='Markdown'
+            )
+            return
+
+        # Build leaderboard message
+        medals = ['🥇', '🥈', '🥉']
+        lines = ["🏆 *EA Summit Helsinki Leaderboard* 🏆\n"]
+
+        for index, entry in enumerate(entries):
+            rank = index + 1
+            medal = medals[index] if rank <= 3 else f"{rank}."
+            username = escape_markdown(entry['username'])
+            invites = entry['invites']
+            lines.append(f"{medal} @{username}: *{invites}* invites")
+
+        lines.append(f"\n📊 *Stats:*")
+        lines.append(f"👥 Total participants: {stats['total_participants']}")
+        lines.append(f"✉️ Total invites: {stats['total_invites']}")
+
+        await update.message.reply_text('\n'.join(lines), parse_mode='Markdown')
+    except Exception as e:
+        logger.error(f"Error showing leaderboard: {e}")
         await update.message.reply_text(
-            "📊 The leaderboard is empty!\n"
-            "Be the first to submit with `/submit <number>`",
-            parse_mode='Markdown'
+            "Sorry, there was an error displaying the leaderboard. Please try again later."
         )
-        return
-
-    # Build leaderboard message
-    medals = ['🥇', '🥈', '🥉']
-    lines = ["*🏆 EA Summit Helsinki Leaderboard 🏆*\n"]
-
-    for index, entry in enumerate(entries):
-        rank = index + 1
-        medal = medals[index] if rank <= 3 else f"{rank}."
-        username = entry['username']
-        invites = entry['invites']
-        lines.append(f"{medal} @{username}: *{invites}* invites")
-
-    lines.append(f"\n📊 *Stats:*")
-    lines.append(f"👥 Total participants: {stats['total_participants']}")
-    lines.append(f"✉️ Total invites: {stats['total_invites']}")
-
-    await update.message.reply_text('\n'.join(lines), parse_mode='Markdown')
 
 
 async def show_mystats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show personal stats for the user."""
-    user = update.effective_user
-    stats = leaderboard.get_user_stats(user.id)
+    try:
+        user = update.effective_user
+        stats = leaderboard.get_user_stats(user.id)
 
-    if not stats:
-        await update.message.reply_text(
-            "You haven't submitted any invites yet!\n"
-            "Use `/submit <number>` to get started.",
-            parse_mode='Markdown'
-        )
-        return
+        if not stats:
+            await update.message.reply_text(
+                "You haven't submitted any invites yet!\n"
+                "Use /add or /edit to get started.",
+                parse_mode='Markdown'
+            )
+            return
 
-    # Find rank
-    entries = leaderboard.get_leaderboard()
-    rank = next(i + 1 for i, e in enumerate(entries) if e['user_id'] == user.id)
+        # Find rank
+        entries = leaderboard.get_leaderboard()
+        rank = next(i + 1 for i, e in enumerate(entries) if e['user_id'] == user.id)
 
-    medals = {1: '🥇', 2: '🥈', 3: '🥉'}
-    rank_display = medals.get(rank, f"#{rank}")
+        medals = {1: '🥇', 2: '🥈', 3: '🥉'}
+        rank_display = medals.get(rank, f"#{rank}")
 
-    message = f"""
+        message = f"""
 *Your Stats* 📊
 
 Rank: {rank_display}
@@ -727,7 +726,12 @@ Last updated: {stats['updated_at'][:10]}
 
 Keep up the great work! 🚀
 """
-    await update.message.reply_text(message, parse_mode='Markdown')
+        await update.message.reply_text(message, parse_mode='Markdown')
+    except Exception as e:
+        logger.error(f"Error showing user stats: {e}")
+        await update.message.reply_text(
+            "Sorry, there was an error retrieving your stats. Please try again later."
+        )
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
