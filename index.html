@@ -42,60 +42,32 @@
             opacity: 0.9;
         }
 
-        .submission-form {
-            background: white;
-            padding: 30px;
+        .bot-info {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             margin-bottom: 30px;
             animation: fadeInUp 0.6s ease-out;
+            text-align: center;
         }
 
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+        .bot-info h2 {
             color: #667eea;
+            margin-bottom: 15px;
         }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+        .bot-info p {
+            margin: 10px 0;
+            font-size: 1.1em;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
+        .bot-info code {
+            background: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #667eea;
         }
 
         .leaderboard {
@@ -194,19 +166,36 @@
             font-size: 1.2em;
         }
 
-        .success-message {
-            background: #4caf50;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            text-align: center;
-            animation: slideDown 0.3s ease-out;
-            display: none;
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 10px;
         }
 
-        .success-message.show {
-            display: block;
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .last-updated {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
         }
 
         @keyframes fadeInDown {
@@ -242,51 +231,6 @@
             }
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 30px;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
-            border-radius: 10px;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 5px;
-        }
-
         @media (max-width: 600px) {
             h1 {
                 font-size: 2em;
@@ -319,161 +263,33 @@
             <p class="subtitle">Invite Leaderboard Challenge</p>
         </header>
 
-        <div class="submission-form">
-            <div id="successMessage" class="success-message"></div>
-            <h2 style="margin-bottom: 20px; color: #667eea;">Submit Your Invites</h2>
-            <form id="inviteForm">
-                <div class="form-group">
-                    <label for="name">Your Name</label>
-                    <input type="text" id="name" name="name" required placeholder="Enter your name">
-                </div>
-                <div class="form-group">
-                    <label for="invites">Number of Invites</label>
-                    <input type="number" id="invites" name="invites" min="0" required placeholder="How many people did you invite?">
-                </div>
-                <button type="submit">🚀 Submit to Leaderboard</button>
-            </form>
-            <p style="margin-top: 15px; color: #666; font-size: 0.9em; text-align: center;">
-                💡 Tip: Re-submit with the same name to update your invite count!
-            </p>
+        <div class="bot-info">
+            <h2>📱 Submit via Telegram Bot</h2>
+            <p>To submit your invites, message the bot with:</p>
+            <p><code>/submit &lt;number&gt;</code> - Submit your invite count</p>
+            <p><code>/leaderboard</code> - View current standings</p>
+            <p><code>/mystats</code> - Check your stats</p>
         </div>
 
         <div class="leaderboard">
             <h2 class="leaderboard-title">🏆 Leaderboard 🏆</h2>
             <ul id="leaderboardList" class="leaderboard-list">
-                <li class="empty-state">No entries yet. Be the first to submit!</li>
+                <li class="empty-state">No entries yet. Be the first to submit via the Telegram bot!</li>
             </ul>
             <div class="stats">
                 <div class="stat">
-                    <div class="stat-value" id="totalParticipants">0</div>
+                    <div class="stat-value">0</div>
                     <div class="stat-label">Participants</div>
                 </div>
                 <div class="stat">
-                    <div class="stat-value" id="totalInvites">0</div>
+                    <div class="stat-value">0</div>
                     <div class="stat-label">Total Invites</div>
                 </div>
             </div>
+            <div class="last-updated">
+                This page will be automatically updated when submissions are made via the Telegram bot.
+            </div>
         </div>
     </div>
-
-    <script>
-        class InviteLeaderboard {
-            constructor() {
-                this.storageKey = 'eaSummitInvites';
-                this.form = document.getElementById('inviteForm');
-                this.leaderboardList = document.getElementById('leaderboardList');
-                this.successMessage = document.getElementById('successMessage');
-                this.init();
-            }
-
-            init() {
-                this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-                this.renderLeaderboard();
-            }
-
-            getEntries() {
-                const data = localStorage.getItem(this.storageKey);
-                return data ? JSON.parse(data) : [];
-            }
-
-            saveEntries(entries) {
-                localStorage.setItem(this.storageKey, JSON.stringify(entries));
-            }
-
-            handleSubmit(e) {
-                e.preventDefault();
-                const name = document.getElementById('name').value.trim();
-                const invites = parseInt(document.getElementById('invites').value);
-
-                if (!name || invites < 0) {
-                    return;
-                }
-
-                let entries = this.getEntries();
-                const existingIndex = entries.findIndex(entry =>
-                    entry.name.toLowerCase() === name.toLowerCase()
-                );
-
-                let message = '';
-                if (existingIndex !== -1) {
-                    const oldInvites = entries[existingIndex].invites;
-                    entries[existingIndex].invites = invites;
-                    entries[existingIndex].timestamp = new Date().toISOString();
-                    message = `Updated ${name}'s invites from ${oldInvites} to ${invites}! 🎉`;
-                } else {
-                    entries.push({
-                        name: name,
-                        invites: invites,
-                        timestamp: new Date().toISOString()
-                    });
-                    message = `${name} added to the leaderboard with ${invites} invites! 🚀`;
-                }
-
-                this.saveEntries(entries);
-                this.showSuccessMessage(message);
-                this.renderLeaderboard();
-                this.form.reset();
-            }
-
-            showSuccessMessage(message) {
-                this.successMessage.textContent = message;
-                this.successMessage.classList.add('show');
-                setTimeout(() => {
-                    this.successMessage.classList.remove('show');
-                }, 3000);
-            }
-
-            renderLeaderboard() {
-                const entries = this.getEntries();
-
-                if (entries.length === 0) {
-                    this.leaderboardList.innerHTML = '<li class="empty-state">No entries yet. Be the first to submit!</li>';
-                    this.updateStats(0, 0);
-                    return;
-                }
-
-                entries.sort((a, b) => b.invites - a.invites);
-
-                const medals = ['🥇', '🥈', '🥉'];
-
-                this.leaderboardList.innerHTML = entries.map((entry, index) => {
-                    const rank = index + 1;
-                    const rankClass = rank <= 3 ? `rank-${rank}` : '';
-                    const medal = rank <= 3 ? `<span class="medal">${medals[index]}</span>` : '';
-
-                    return `
-                        <li class="leaderboard-item ${rankClass}">
-                            <div class="rank">
-                                ${medal}
-                                <span>#${rank}</span>
-                            </div>
-                            <div class="player-info">
-                                <div class="player-name">${this.escapeHtml(entry.name)}</div>
-                            </div>
-                            <div class="invite-count">
-                                ${entry.invites} <span class="label">invites</span>
-                            </div>
-                        </li>
-                    `;
-                }).join('');
-
-                const totalInvites = entries.reduce((sum, entry) => sum + entry.invites, 0);
-                this.updateStats(entries.length, totalInvites);
-            }
-
-            updateStats(participants, totalInvites) {
-                document.getElementById('totalParticipants').textContent = participants;
-                document.getElementById('totalInvites').textContent = totalInvites;
-            }
-
-            escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-        }
-
-        new InviteLeaderboard();
-    </script>
 </body>
 </html>
