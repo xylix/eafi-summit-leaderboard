@@ -12,7 +12,7 @@ import os
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -54,7 +54,7 @@ class LeaderboardManager:
             json.dump(self.data, f, indent=2, sort_keys=True)
             f.write('\n')  # Add trailing newline for clean diffs
 
-    def edit_invites(self, user_id: int, username: str, invites: int) -> tuple[bool, int]:
+    def edit_invites(self, user_id: int, username: str, invites: int) -> Tuple[bool, int]:
         """
         Edit (replace) invite count for a user.
 
@@ -85,7 +85,7 @@ class LeaderboardManager:
         self._save_data()
         return True, 0
 
-    def add_invites(self, user_id: int, username: str, invites: int) -> tuple[bool, int, int]:
+    def add_invites(self, user_id: int, username: str, invites: int) -> Tuple[bool, int, int]:
         """
         Add to existing invite count for a user.
 
@@ -117,19 +117,19 @@ class LeaderboardManager:
         self._save_data()
         return True, 0, invites
 
-    def get_leaderboard(self) -> list[dict]:
+    def get_leaderboard(self) -> List[Dict]:
         """Get sorted leaderboard entries."""
         entries = self.data.get('entries', [])
         return sorted(entries, key=lambda x: x['invites'], reverse=True)
 
-    def get_user_stats(self, user_id: int) -> Optional[dict]:
+    def get_user_stats(self, user_id: int) -> Optional[Dict]:
         """Get stats for a specific user."""
         for entry in self.data.get('entries', []):
             if entry['user_id'] == user_id:
                 return entry
         return None
 
-    def get_total_stats(self) -> dict:
+    def get_total_stats(self) -> Dict:
         """Get total statistics."""
         entries = self.data.get('entries', [])
         return {
@@ -144,7 +144,7 @@ class GitHubPublisher:
     def __init__(self, repo_path: Path):
         self.repo_path = repo_path
 
-    def _run_git_command(self, command: list[str]) -> tuple[bool, str]:
+    def _run_git_command(self, command: List[str]) -> Tuple[bool, str]:
         """Run a git command and return success status and output."""
         try:
             result = subprocess.run(
@@ -160,13 +160,13 @@ class GitHubPublisher:
         except Exception as e:
             return False, str(e)
 
-    def update_html(self, leaderboard_data: list[dict], stats: dict):
+    def update_html(self, leaderboard_data: List[Dict], stats: Dict):
         """Update the HTML file with current leaderboard data."""
         html_content = self._generate_html(leaderboard_data, stats)
         with open(self.repo_path / HTML_FILE, 'w') as f:
             f.write(html_content)
 
-    def _generate_html(self, leaderboard_data: list[dict], stats: dict) -> str:
+    def _generate_html(self, leaderboard_data: List[Dict], stats: Dict) -> str:
         """Generate HTML content with leaderboard data."""
         # Generate leaderboard items HTML
         if not leaderboard_data:
@@ -504,7 +504,7 @@ class GitHubPublisher:
                 .replace('"', '&quot;')
                 .replace("'", '&#39;'))
 
-    def publish(self, commit_message: str = "Update leaderboard") -> tuple[bool, str]:
+    def publish(self, commit_message: str = "Update leaderboard") -> Tuple[bool, str]:
         """Commit and push changes to GitHub."""
         # Add files
         success, output = self._run_git_command(['git', 'add', str(DATA_FILE), str(HTML_FILE)])
