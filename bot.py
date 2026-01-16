@@ -54,9 +54,9 @@ class LeaderboardManager:
             json.dump(self.data, f, indent=2, sort_keys=True)
             f.write('\n')  # Add trailing newline for clean diffs
 
-    def submit_invites(self, user_id: int, username: str, invites: int) -> tuple[bool, int]:
+    def edit_invites(self, user_id: int, username: str, invites: int) -> tuple[bool, int]:
         """
-        Submit or update invite count for a user.
+        Edit (replace) invite count for a user.
 
         Returns:
             tuple: (is_new_entry, previous_count)
@@ -84,6 +84,38 @@ class LeaderboardManager:
         self.data['entries'] = entries
         self._save_data()
         return True, 0
+
+    def add_invites(self, user_id: int, username: str, invites: int) -> tuple[bool, int, int]:
+        """
+        Add to existing invite count for a user.
+
+        Returns:
+            tuple: (is_new_entry, previous_count, new_count)
+        """
+        entries = self.data.get('entries', [])
+
+        # Find existing entry
+        for entry in entries:
+            if entry['user_id'] == user_id:
+                previous_count = entry['invites']
+                new_count = previous_count + invites
+                entry['invites'] = new_count
+                entry['username'] = username  # Update username in case it changed
+                entry['updated_at'] = datetime.now().isoformat()
+                self._save_data()
+                return False, previous_count, new_count
+
+        # Create new entry (first time adding)
+        entries.append({
+            'user_id': user_id,
+            'username': username,
+            'invites': invites,
+            'created_at': datetime.now().isoformat(),
+            'updated_at': datetime.now().isoformat()
+        })
+        self.data['entries'] = entries
+        self._save_data()
+        return True, 0, invites
 
     def get_leaderboard(self) -> list[dict]:
         """Get sorted leaderboard entries."""
@@ -432,8 +464,9 @@ class GitHubPublisher:
 
         <div class="bot-info">
             <h2>📱 Submit via Telegram Bot</h2>
-            <p>To submit your invites, message the bot with:</p>
-            <p><code>/submit &lt;number&gt;</code> - Submit your invite count</p>
+            <p>To track your invites, message the bot with:</p>
+            <p><code>/add &lt;number&gt;</code> - Add invites to your count</p>
+            <p><code>/edit &lt;number&gt;</code> - Replace your total invite count</p>
             <p><code>/leaderboard</code> - View current standings</p>
             <p><code>/mystats</code> - Check your stats</p>
         </div>
@@ -518,19 +551,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Track your invites and compete with other organizers!
 
 *Commands:*
-/submit <number> - Submit your invite count
+/add <number> - Add invites to your count (e.g., `/add 5` adds 5 more)
+/edit <number> - Replace your total invite count (e.g., `/edit 15`)
 /leaderboard - View current standings
 /mystats - Check your personal stats
 
-Example: `/submit 10`
+*Examples:*
+• `/add 5` - Add 5 invites to your current count
+• `/edit 20` - Set your total to 20 invites
 
 Let's make this summit amazing! 🚀
 """
     await update.message.reply_text(welcome_message, parse_mode='Markdown')
 
 
-async def submit_invites(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle invite submission."""
+async def edit_invites_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle invite editing (replace total count)."""
     user = update.effective_user
     username = user.username or f"user{user.id}"
 
@@ -538,7 +574,7 @@ async def submit_invites(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args or len(context.args) != 1:
         await update.message.reply_text(
             "Please provide the number of invites.\n"
-            "Example: `/submit 10`",
+            "Example: `/edit 10`",
             parse_mode='Markdown'
         )
         return
@@ -552,31 +588,82 @@ async def submit_invites(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please provide a valid number!")
         return
 
-    # Submit to leaderboard
-    is_new, previous = leaderboard.submit_invites(user.id, username, invites)
+    # Edit leaderboard entry
+    is_new, previous = leaderboard.edit_invites(user.id, username, invites)
 
     if is_new:
         message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
     else:
-        message = f"✅ Updated your invites from *{previous}* to *{invites}*!"
+        message = f"✅ Updated your total from *{previous}* to *{invites}* invites!"
 
     await update.message.reply_text(message, parse_mode='Markdown')
 
     # Auto-publish to GitHub
-    logger.info(f"Auto-publishing after submission by @{username}")
+    logger.info(f"Auto-publishing after edit by @{username}")
     leaderboard_data = leaderboard.get_leaderboard()
     stats = leaderboard.get_total_stats()
     publisher.update_html(leaderboard_data, stats)
 
     success, pub_message = publisher.publish(
-        f"Update leaderboard: @{username} submitted {invites} invites"
+        f"Update leaderboard: @{username} edited to {invites} invites"
     )
     if success:
         logger.info(f"Published to GitHub: {pub_message}")
     else:
         logger.error(f"Failed to publish: {pub_message}")
         await update.message.reply_text(
-            "⚠️ Submission saved but failed to publish to website. Check logs."
+            "⚠️ Update saved but failed to publish to website. Check logs."
+        )
+
+
+async def add_invites_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle adding invites to existing count."""
+    user = update.effective_user
+    username = user.username or f"user{user.id}"
+
+    # Parse invite count from command
+    if not context.args or len(context.args) != 1:
+        await update.message.reply_text(
+            "Please provide the number of invites to add.\n"
+            "Example: `/add 5`",
+            parse_mode='Markdown'
+        )
+        return
+
+    try:
+        invites = int(context.args[0])
+        if invites < 0:
+            await update.message.reply_text("Invite count must be a positive number!")
+            return
+    except ValueError:
+        await update.message.reply_text("Please provide a valid number!")
+        return
+
+    # Add to leaderboard
+    is_new, previous, new_total = leaderboard.add_invites(user.id, username, invites)
+
+    if is_new:
+        message = f"🎉 Great! Added you to the leaderboard with *{invites}* invites!"
+    else:
+        message = f"➕ Added *{invites}* invites! Your total: *{previous}* → *{new_total}*"
+
+    await update.message.reply_text(message, parse_mode='Markdown')
+
+    # Auto-publish to GitHub
+    logger.info(f"Auto-publishing after add by @{username}")
+    leaderboard_data = leaderboard.get_leaderboard()
+    stats = leaderboard.get_total_stats()
+    publisher.update_html(leaderboard_data, stats)
+
+    success, pub_message = publisher.publish(
+        f"Update leaderboard: @{username} added {invites} invites (total: {new_total})"
+    )
+    if success:
+        logger.info(f"Published to GitHub: {pub_message}")
+    else:
+        logger.error(f"Failed to publish: {pub_message}")
+        await update.message.reply_text(
+            "⚠️ Update saved but failed to publish to website. Check logs."
         )
 
 
@@ -664,8 +751,8 @@ def main():
 
     # Add handlers
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("submit", submit_invites))
-    application.add_handler(CommandHandler("invites", submit_invites))  # Alias
+    application.add_handler(CommandHandler("add", add_invites_handler))
+    application.add_handler(CommandHandler("edit", edit_invites_handler))
     application.add_handler(CommandHandler("leaderboard", show_leaderboard))
     application.add_handler(CommandHandler("mystats", show_mystats))
 

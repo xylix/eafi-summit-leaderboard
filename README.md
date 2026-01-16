@@ -49,10 +49,15 @@ python3 bot.py
 ## Bot Commands
 
 - `/start` - Get welcome message and instructions
-- `/submit <number>` - Submit your invite count (e.g., `/submit 10`)
-- `/invites <number>` - Alias for `/submit`
+- `/add <number>` - Add invites to your count (e.g., `/add 5` adds 5 more)
+- `/edit <number>` - Replace your total invite count (e.g., `/edit 15` sets total to 15)
 - `/leaderboard` - View current standings
 - `/mystats` - Check your personal stats
+
+**Examples:**
+- First submission: `/add 10` → You have 10 invites
+- Add more: `/add 5` → You now have 15 invites (10 + 5)
+- Made a mistake? `/edit 12` → Your total is now 12 invites
 
 ## How It Works
 
